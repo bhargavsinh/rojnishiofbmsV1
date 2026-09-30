@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Rojnishi Of Bms",
+      "hasCanvas": false,
+      "bodyTextLen": 79,
+      "bodyTextHash": "3622d00d77ad75e548a2f790c7b48c6213d9529fe06bc303b57fa4166aa3a458",
+      "bodyTextPrefix": "હુકમ, શ્રી દેવદમનપ્રભુ ની કૃપાથી... Rojnishi Of Bms રોજનિશી · લો",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Rojnishi Of Bms",
+      "hasCanvas": false,
+      "bodyTextLen": 216,
+      "bodyTextHash": "7ec307cc9f7c03c1c32528046653fb060cbb76a9f65ec5e9f0bad8c97d71a9bc",
+      "bodyTextPrefix": "હુકમ, શ્રી દેવદમનપ્રભુ ની કૃપાથી... Rojnishi Of Bms રોજનિશી તમાર",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-preview.json"
+}

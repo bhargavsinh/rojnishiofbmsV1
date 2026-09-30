@@ -1,0 +1,1 @@
+import{P as e}from"./store-CcWHStgW.js";import{t}from"./file-manager-Bt9UlFHg.js";var n=e();function r(){return(0,n.jsx)(`div`,{className:`max-w-6xl mx-auto`,children:(0,n.jsx)(t,{space:`files`})})}export{r as component};

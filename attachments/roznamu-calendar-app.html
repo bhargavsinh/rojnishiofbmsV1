@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>રોજનામું — કેલેન્ડર આધારિત દૈનિક નોંધ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#2b2118; --muted:#7a6a58; --line:#e6dbc9; --cream:#fdf8f0; --card:#fff;
+    --royal:#8a1c1c; --gold:#e0a12a;
+    --seva:#b45309; --vidya:#1d4ed8; --dhandho:#047857;
+    --kanun:#7c3aed; --lekhan:#be123c; --munshi:#0f766e; --other:#64748b;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:20px 14px 48px;
+    background:
+      radial-gradient(circle at 12% 6%, #fff3df 0%, transparent 45%),
+      radial-gradient(circle at 88% 94%, #f6ecdd 0%, transparent 50%),
+      var(--cream);
+    font-family:"Noto Sans Gujarati",system-ui,-apple-system,"Segoe UI",sans-serif;
+    color:var(--ink); line-height:1.55;
+  }
+  .wrap{max-width:1120px;margin:0 auto}
+  header{
+    border:1px solid var(--line); border-top:4px solid var(--royal); border-radius:14px;
+    background:var(--card); padding:17px 20px; box-shadow:0 6px 22px rgba(80,55,25,.07);
+  }
+  .greet{font-size:13.5px;color:var(--seva);font-weight:600}
+  h1{margin:5px 0 2px;font-size:22px}
+  .sub{color:var(--muted);font-size:13px}
+  .warn{
+    margin-top:12px;font-size:12.8px;color:#7a4a10;background:#fdf5e6;
+    border:1px dashed #e6cfa4;border-radius:10px;padding:9px 12px;
+  }
+  h2{font-size:16px;margin:0 0 12px;display:flex;align-items:center;gap:9px}
+  h2::before{content:"";width:5px;height:17px;border-radius:3px;background:var(--royal)}
+  section{border:1px solid var(--line);border-radius:14px;background:var(--card);
+    padding:16px 18px;margin-top:16px;box-shadow:0 6px 22px rgba(80,55,25,.05)}
+  .grid{display:grid;grid-template-columns:minmax(320px,1fr) minmax(320px,1.25fr);gap:16px;align-items:start}
+  @media (max-width:900px){ .grid{grid-template-columns:1fr} }
+  /* calendar */
+  .calhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+  .mtitle{font-size:17px;font-weight:700;color:var(--royal)}
+  .navbtn{border:1px solid #dcc3c3;background:#fff;color:var(--royal);font-weight:700;
+    font-size:15px;padding:5px 12px;border-radius:9px;cursor:pointer;font-family:inherit}
+  .navbtn:hover{background:#fdf2f2}
+  .weekhdr{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}
+  .weekhdr div{text-align:center;font-size:12px;font-weight:700;color:#7a5a20;
+    background:#fdf3e5;border-radius:7px;padding:5px 0}
+  .days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .cell{
+    position:relative;min-height:58px;border:1px solid var(--line);border-radius:10px;
+    background:#fffdf9;cursor:pointer;padding:5px 6px;transition:.15s;text-align:left;
+    font-family:inherit;color:var(--ink);
+  }
+  .cell:hover{border-color:#d9c6a8;background:#fff8ec}
+  .cell .d{font-size:13.5px;font-weight:600}
+  .cell.out{opacity:.42}
+  .cell.today{border-color:var(--gold);box-shadow:inset 0 0 0 2px #f6e3bd}
+  .cell.sel{background:#8a1c1c;border-color:#8a1c1c}
+  .cell.sel .d{color:#fff}
+  .cell .badge{
+    position:absolute;bottom:5px;right:5px;background:#f0e0c8;color:#6b4a15;
+    font-size:10.5px;font-weight:700;border-radius:999px;padding:1px 7px;
+  }
+  .cell.sel .badge{background:#f7d9a0;color:#6b3a0a}
+  .cell .pip{position:absolute;bottom:8px;left:7px;display:flex;gap:3px}
+  .cell .pip i{width:6px;height:6px;border-radius:50%;display:inline-block}
+  .cell.sel .pip i{opacity:.95}
+  /* day panel */
+  .daytitle{font-size:16px;font-weight:700;color:var(--royal);margin-bottom:2px}
+  .daysub{font-size:12.5px;color:var(--muted);margin-bottom:12px}
+  .ent{display:flex;gap:8px;align-items:center;background:#fffdf9;border:1px solid var(--line);
+    border-left:5px solid #ccc;border-radius:10px;padding:7px 9px;margin-bottom:7px;flex-wrap:wrap}
+  .ent input[type=time]{font-family:inherit;font-size:13.5px;padding:6px 7px;border:1px solid var(--line);
+    border-radius:8px;background:#fff;color:var(--ink);width:104px}
+  .ent input[type=text]{flex:1;min-width:150px;font-family:inherit;font-size:13.5px;padding:6px 9px;
+    border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+  .ent select{font-family:inherit;font-size:12.5px;padding:6px 7px;border:1px solid var(--line);
+    border-radius:8px;background:#fff;color:var(--ink);max-width:180px}
+  .ent .del{background:#fff;color:#a33232;border:1px solid #e6c6c6;border-radius:8px;
+    width:30px;height:30px;font-size:16px;line-height:1;cursor:pointer;font-family:inherit}
+  .ent .del:hover{background:#fdeeee}
+  .btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  button.act{font-family:inherit;font-size:13.5px;font-weight:600;padding:8px 14px;border-radius:9px;
+    border:1px solid #7a1414;background:#8a1c1c;color:#fff;cursor:pointer}
+  button.act.ghost{background:#fff;color:var(--royal);border-color:#dcc3c3}
+  button.act:hover{filter:brightness(1.06)}
+  .notebox{margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+  .notebox label{font-size:13px;font-weight:600;color:#6b4a15;display:block;margin-bottom:6px}
+  .notebox textarea{width:100%;min-height:74px;font-family:inherit;font-size:13.5px;padding:9px 11px;
+    border:1px solid var(--line);border-radius:10px;background:#fffdf9;color:var(--ink);resize:vertical}
+  .chips{margin-top:12px;display:flex;gap:6px;flex-wrap:wrap}
+  .chip{font-size:11.5px;font-weight:700;border-radius:999px;padding:3px 10px;color:#fff}
+  .empty{font-size:13.5px;color:var(--muted);background:#fdf9f2;border:1px dashed var(--line);
+    border-radius:10px;padding:14px;text-align:center}
+  .io{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start}
+  .io textarea{flex:1;min-width:240px;min-height:96px;font-family:ui-monospace,Consolas,monospace;
+    font-size:12px;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fffdf9;color:var(--ink)}
+  .msg{font-size:12.5px;color:#0f766e;font-weight:600;margin-top:8px;min-height:18px}
+  footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="greet">હુકમ, શ્રી દેવદમનપ્રભુ ની કૃપાથી...</div>
+    <h1>રોજનામું — કેલેન્ડર આધારિત દૈનિક નોંધ પોથી</h1>
+    <div class="sub">ભારગવસિંહ મહેન્દ્રસિંહ સિસોદીયા · વિદ્યા · વિવેક · ધૈર્ય · આશ્રય</div>
+    <div class="warn">
+      <b>મુનશીની ચેતવણી:</b> આ પાનું બંધ કે રિફ્રેશ કરવાથી નોંધ જતી રહેશે (આ ખાનામાં સ્થાયી સ્ટોરેજ ઉપલબ્ધ નથી). કામ પૂરું થાય કે દિવસને અંતે નીચે <b>“કૉપી કરો”</b> દબાવી ડેટા સાચવી રાખવો, અને પાછા આવતી વખતે <b>“આયાત કરો”</b> માં પેસ્ટ કરવો.
+    </div>
+  </header>
+
+  <div class="grid">
+
+    <section>
+      <h2>કેલેન્ડર</h2>
+      <div class="calhead">
+        <button class="navbtn" id="prev">‹</button>
+        <div class="mtitle" id="mtitle">—</div>
+        <button class="navbtn" id="next">›</button>
+      </div>
+      <div class="weekhdr">
+        <div>સોમ</div><div>મંગળ</div><div>બુધ</div><div>ગુરુ</div><div>શુક્ર</div><div>શનિ</div><div>રવિ</div>
+      </div>
+      <div class="days" id="days"></div>
+      <div class="btnrow">
+        <button class="act ghost" id="todayBtn">આજે જાઓ</button>
+        <button class="act ghost" id="monthInfo">—</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>દિવસની નોંધ</h2>
+      <div class="daytitle" id="dayTitle">—</div>
+      <div class="daysub" id="daySub"></div>
+      <div id="entries"></div>
+
+      <div class="btnrow">
+        <button class="act" id="addBtn">+ નવી નોંધ</button>
+        <button class="act ghost" id="routineBtn">નિયમિત દિનચર્યા ભરો</button>
+        <button class="act ghost" id="clearBtn">આ દિવસ ખાલી કરો</button>
+      </div>
+
+      <div class="notebox">
+        <label for="dayNote">દિવસની એક લીટી નોંધ (મુનશી અભિલેખ)</label>
+        <textarea id="dayNote" placeholder="આજનો સાર, નિર્ણય કે યાદ રાખવા જેવી વાત…"></textarea>
+      </div>
+
+      <div class="chips" id="chips"></div>
+    </section>
+  </div>
+
+  <section>
+    <h2>ડેટા સાચવવો / પાછો લાવવો</h2>
+    <div class="io">
+      <textarea id="io" placeholder="અહીં આપનો બધો ડેટા (JSON) દેખાશે. ‘કૉપી કરો’ દબાવો, અથવા બીજા સત્રમાંથી ડેટા પેસ્ટ કરી ‘આયાત કરો’ દબાવો."></textarea>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="act" id="copyBtn">કૉપી કરો</button>
+        <button class="act ghost" id="exportBtn">ડેટા બતાવો</button>
+        <button class="act ghost" id="importBtn">આયાત કરો</button>
+        <button class="act ghost" id="wipeBtn">બધું ભૂંસો</button>
+      </div>
+    </div>
+    <div class="msg" id="msg"></div>
+  </section>
+
+  <footer>“કર્મણ્યેવાધિકારસ્તે” — લખાયેલું રહે, તો નિર્ણય ધીમે પણ સ્થિર થાય છે.</footer>
+</div>
+
+<script>
+  const PILLARS = {
+    seva:   {n:"આધ્યાત્મ & સેવા",   c:"#b45309"},
+    vidya:  {n:"વિદ્યા / ટેકનોલોજી", c:"#1d4ed8"},
+    dhandho:{n:"ધંધો & મેનેજમેન્ટ",   c:"#047857"},
+    kanun:  {n:"કાયદો & દસ્તાવેજ",    c:"#7c3aed"},
+    lekhan: {n:"લેખન & પ્રકાશન",      c:"#be123c"},
+    munshi: {n:"મુનશી કામ",           c:"#0f766e"},
+    other:  {n:"દૈનિક ક્રમ / અન્ય",   c:"#64748b"}
+  };
+
+  const ROUTINE = [
+    ["05:25","જાગરણ — શ્રી દેવદમનપ્રભુ સ્મરણ","seva"],
+    ["05:26","નિત્યકર્મ — સ્નાન, તિલક, પૂજા","seva"],
+    ["06:05","શ્રીપ્રભુની સેવા — જગાવવાથી રાજભોગ સુધી","seva"],
+    ["07:16","કોલેજની તૈયારી","other"],
+    ["07:56","કોલેજ — BCA (મહીસાગર BCA કોલેજ, લુણાવાડા)","vidya"],
+    ["12:31","ફ્રેશ + ભોજન","other"],
+    ["13:15","ખંડ ૧ — વિદ્યા (BCA પાઠ/નોંધ)","vidya"],
+    ["14:28","ખંડ ૨ — ટેકનોલોજી (કોડિંગ/પ્રોજેક્ટ)","vidya"],
+    ["15:41","ખંડ ૩ — ધંધો, કાયદો & મેનેજમેન્ટ","dhandho"],
+    ["16:55","ખંડ ૪ — લેખન, પ્રકાશન & આયોજન","lekhan"],
+    ["18:01","સાંજની સેવા — ઉત્થાપન થી પોઢાડવા","seva"],
+    ["19:01","ડિનર","other"],
+    ["22:00","શયન (વિશ્રામ)","other"]
+  ];
+
+  const MONTHS = ["જાન્યુઆરી","ફેબ્રુઆરી","માર્ચ","એપ્રિલ","મે","જૂન",
+                  "જુલાઈ","ઑગસ્ટ","સપ્ટેમ્બર","ઑક્ટોબર","નવેમ્બર","ડિસેમ્બર"];
+  const WD = ["રવિવાર","સોમવાર","મંગળવાર","બુધવાર","ગુરુવાર","શુક્રવાર","શનિવાર"];
+
+  const GU = ["૦","૧","૨","૩","૪","૫","૬","૭","૮","૯"];
+  const gu = v => String(v).replace(/\d/g, d => GU[+d]);
+  const pad = n => String(n).padStart(2,"0");
+  const keyOf = d => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+
+  let store = {};                       // { "YYYY-MM-DD": { entries:[{t,d,p}], note:"" } }
+  const today = new Date();
+  let selected = keyOf(today);
+  let viewY = today.getFullYear();
+  let viewM = today.getMonth();
+  let uid = 1;
+
+  const $ = id => document.getElementById(id);
+  const dayRec = k => (store[k] = store[k] || {entries:[], note:""});
+
+  /* ---------- calendar ---------- */
+  function renderCalendar(){
+    $("mtitle").textContent = MONTHS[viewM] + " " + gu(viewY);
+    const first = new Date(viewY, viewM, 1);
+    const startOffset = (first.getDay() + 6) % 7;          // Monday-first
+    const start = new Date(viewY, viewM, 1 - startOffset);
+    const days = $("days");
+    days.innerHTML = "";
+
+    let monthEntries = 0;
+    for(let i=0;i<42;i++){
+      const d = new Date(start.getFullYear(), start.getMonth(), start.getDate()+i);
+      const k = keyOf(d);
+      const rec = store[k];
+      const cnt = rec ? rec.entries.length : 0;
+      if(d.getMonth()===viewM) monthEntries += cnt;
+
+      const cell = document.createElement("button");
+      cell.type = "button";
+      cell.className = "cell";
+      if(d.getMonth()!==viewM) cell.classList.add("out");
+      if(k===keyOf(today)) cell.classList.add("today");
+      if(k===selected) cell.classList.add("sel");
+      cell.innerHTML = '<span class="d">'+gu(d.getDate())+'</span>';
+
+      if(cnt>0){
+        const pips = document.createElement("span");
+        pips.className = "pip";
+        const pills = [...new Set(rec.entries.map(e=>e.p))].slice(0,4);
+        pills.forEach(p=>{
+          const dot = document.createElement("i");
+          dot.style.background = (PILLARS[p]||PILLARS.other).c;
+          pips.appendChild(dot);
+        });
+        cell.appendChild(pips);
+        const b = document.createElement("span");
+        b.className = "badge";
+        b.textContent = gu(cnt);
+        cell.appendChild(b);
+      }
+      cell.addEventListener("click", ()=>{
+        selected = k;
+        if(d.getMonth()!==viewM){ viewY=d.getFullYear(); viewM=d.getMonth(); }
+        renderCalendar(); renderDay();
+      });
+      days.appendChild(cell);
+    }
+    $("monthInfo").textContent = "આ મહિને નોંધ: " + gu(monthEntries);
+  }
+
+  /* ---------- day panel ---------- */
+  function renderDay(){
+    const [y,m,dd] = selected.split("-").map(Number);
+    const dt = new Date(y, m-1, dd);
+    $("dayTitle").textContent = WD[dt.getDay()] + ", " + gu(dd) + " " + MONTHS[m-1] + " " + gu(y);
+    const rec = dayRec(selected);
+    rec.entries.sort((a,b)=>(a.t||"99:99").localeCompare(b.t||"99:99"));
+    $("daySub").textContent = rec.entries.length
+      ? "કુલ " + gu(rec.entries.length) + " નોંધ — સમય પ્રમાણે ગોઠવાયેલી"
+      : "આ દિવસે હજુ કોઈ નોંધ નથી";
+
+    const box = $("entries");
+    box.innerHTML = "";
+    if(!rec.entries.length){
+      box.innerHTML = '<div class="empty">“નવી નોંધ” દબાવો, અથવા “નિયમિત દિનચર્યા ભરો” દબાવી આખો દિવસનો ક્રમ એક જ વારમાં ઉમેરો.</div>';
+    }
+    rec.entries.forEach((e, idx)=>{
+      const p = PILLARS[e.p] || PILLARS.other;
+      const row = document.createElement("div");
+      row.className = "ent";
+      row.style.borderLeftColor = p.c;
+
+      const t = document.createElement("input");
+      t.type = "time"; t.value = e.t || "";
+      t.addEventListener("change", ()=>{ e.t = t.value; renderDay(); renderCalendar(); });
+
+      const d = document.createElement("input");
+      d.type = "text"; d.value = e.d || ""; d.placeholder = "વિગત લખો…";
+      d.addEventListener("input", ()=>{ e.d = d.value; });
+
+      const s = document.createElement("select");
+      Object.keys(PILLARS).forEach(k=>{
+        const o = document.createElement("option");
+        o.value = k; o.textContent = PILLARS[k].n;
+        if(k===e.p) o.selected = true;
+        s.appendChild(o);
+      });
+      s.addEventListener("change", ()=>{ e.p = s.value; renderDay(); renderCalendar(); });
+
+      const del = document.createElement("button");
+      del.className = "del"; del.type = "button"; del.textContent = "×"; del.title = "ભૂંસો";
+      del.addEventListener("click", ()=>{
+        rec.entries.splice(idx,1);
+        if(!rec.entries.length && !rec.note) delete store[selected];
+        renderDay(); renderCalendar();
+      });
+
+      row.append(t,d,s,del);
+      box.appendChild(row);
+    });
+
+    // chips: per-pillar count
+    const chips = $("chips");
+    chips.innerHTML = "";
+    const counts = {};
+    rec.entries.forEach(e=>{ counts[e.p]=(counts[e.p]||0)+1; });
+    Object.keys(counts).forEach(k=>{
+      const c = document.createElement("span");
+      c.className = "chip";
+      c.style.background = (PILLARS[k]||PILLARS.other).c;
+      c.textContent = (PILLARS[k]||PILLARS.other).n + " · " + gu(counts[k]);
+      chips.appendChild(c);
+    });
+
+    $("dayNote").value = rec.note || "";
+  }
+
+  /* ---------- actions ---------- */
+  $("prev").addEventListener("click", ()=>{ viewM--; if(viewM<0){viewM=11;viewY--;} renderCalendar(); });
+  $("next").addEventListener("click", ()=>{ viewM++; if(viewM>11){viewM=0;viewY++;} renderCalendar(); });
+  $("todayBtn").addEventListener("click", ()=>{
+    const now = new Date();
+    viewY = now.getFullYear(); viewM = now.getMonth(); selected = keyOf(now);
+    renderCalendar(); renderDay();
+  });
+
+  $("addBtn").addEventListener("click", ()=>{
+    const rec = dayRec(selected);
+    rec.entries.push({t:"", d:"", p:"vidya"});
+    renderDay(); renderCalendar();
+    const inputs = $("entries").querySelectorAll('input[type=text]');
+    if(inputs.length) inputs[inputs.length-1].focus();
+  });
+
+  $("routineBtn").addEventListener("click", ()=>{
+    const rec = dayRec(selected);
+    ROUTINE.forEach(([t,d,p])=>{
+      if(!rec.entries.some(e=>e.t===t && e.d===d)) rec.entries.push({t:t, d:d, p:p});
+    });
+    renderDay(); renderCalendar();
+    say("નિયમિત દિનચર્યાનો ક્રમ ઉમેરાયો — હવે વિગત પ્રમાણે સુધારી લેવો.");
+  });
+
+  $("clearBtn").addEventListener("click", ()=>{
+    delete store[selected];
+    renderDay(); renderCalendar();
+    say("આ દિવસની નોંધ ભૂંસાઈ.");
+  });
+
+  $("dayNote").addEventListener("input", ()=>{
+    const rec = dayRec(selected);
+    rec.note = $("dayNote").value;
+  });
+
+  function say(t){ const m=$("msg"); m.textContent=t; setTimeout(()=>{ if(m.textContent===t) m.textContent=""; }, 4000); }
+
+  $("exportBtn").addEventListener("click", ()=>{
+    $("io").value = JSON.stringify(store, null, 1);
+    say("ડેટા ઉપરના ખાનામાં દેખાયો — તેમાંથી કૉપી કરી શકાય.");
+  });
+
+  $("copyBtn").addEventListener("click", async ()=>{
+    const txt = JSON.stringify(store);
+    $("io").value = txt;
+    try{
+      await navigator.clipboard.writeText(txt);
+      say("બધો ડેટા ક્લિપબોર્ડ પર કૉપી થયો — સુરક્ષિત જગ્યાએ સાચવી રાખવો.");
+    }catch(err){
+      $("io").value = txt;
+      $("io").select();
+      say("સીધું કૉપી ન થયું — ઉપરના ખાનામાંથી જાતે સિલેક્ટ કરી કૉપી કરી લેવો.");
+    }
+  });
+
+  $("importBtn").addEventListener("click", ()=>{
+    const txt = $("io").value.trim();
+    if(!txt){ say("પહેલા JSON ડેટા પેસ્ટ કરવો."); return; }
+    try{
+      const obj = JSON.parse(txt);
+      if(typeof obj!=="object" || obj===null) throw new Error("bad");
+      const clean = {};
+      Object.keys(obj).forEach(k=>{
+        const rec = obj[k] || {};
+        const entries = Array.isArray(rec.entries) ? rec.entries.map(e=>({
+          t: typeof e.t==="string" ? e.t : "",
+          d: typeof e.d==="string" ? e.d : "",
+          p: PILLARS[e.p] ? e.p : "other"
+        })) : [];
+        clean[k] = {entries:entries, note: typeof rec.note==="string" ? rec.note : ""};
+      });
+      store = clean;
+      renderCalendar(); renderDay();
+      say("ડેટા આયાત થયો — કુલ " + gu(Object.keys(store).length) + " તારીખો.");
+    }catch(err){
+      say("આ JSON માન્ય નથી. કૉપી કરેલો ડેટા જેમ છે તેમ પેસ્ટ કરવો.");
+    }
+  });
+
+  $("wipeBtn").addEventListener("click", ()=>{
+    store = {};
+    renderCalendar(); renderDay();
+    say("બધો ડેટા ભૂંસાયો.");
+  });
+
+  renderCalendar();
+  renderDay();
+</script>
+</body>
+</html>
